@@ -11,15 +11,15 @@ namespace hw_utility
     {
         static void next(std::tuple<Args...>& t, Callback callback)
         {
-            // Уменьшаем позицию и рекурсивно вызываем этот же метод
+            // Decrement of position and call the same method recursively
             iterate_tuple<index - 1, Callback, Args...>::next(t, callback);
 
-            // Вызываем обработчик и передаем ему позицию и значение элемента
+            // Call of callback with position and value of element
             callback(index, std::get<index>(t));
         }
     };
 
-    // Частичная специализация для индекса 0 (завершает рекурсию)
+    // Partial specialization for zero index
     template<typename Callback, typename... Args>
     struct iterate_tuple<0, Callback, Args...>
     {
@@ -29,26 +29,26 @@ namespace hw_utility
         }
     };
 
-    // Частичная специализация для индекса -1 (пустой кортеж)
+    // Partial specialization for index -1 (empty tuple)
     template<typename Callback, typename... Args>
     struct iterate_tuple<-1, Callback, Args...>
     {
         static void next(std::tuple<Args...>& t, Callback callback)
         {
-            // ничего не делаем
+            // do nothing
         }
     };
 }
 
 //
-// "Волшебный" for_each для обхода элементов кортежа (compile time!):
+// "Tricky" for_each for cycle through elements of tuple (compile time!):
 //
 template<typename Callback, typename... Args>
 void for_each(std::tuple<Args...>& t, Callback callback)
 {
-    // Размер кортежа
+    // tuple size
     int const t_size = std::tuple_size<std::tuple<Args...>>::value;
 
-    // Запускаем рекурсивный обход элементов кортежа во время компиляции
+    // Recursive cycle through tuple's elements in compile time
     hw_utility::iterate_tuple<t_size - 1, Callback, Args...>::next(t, callback);
 }

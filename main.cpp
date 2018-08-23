@@ -6,6 +6,7 @@
 #include <list>
 #include <utility>
 #include <tuple>
+#include <type_traits>
 #include "iterate_tuple.h"
 
 namespace  {

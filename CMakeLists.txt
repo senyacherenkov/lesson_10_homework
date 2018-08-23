@@ -5,7 +5,7 @@ project(print_ip VERSION 0.0.$ENV{TRAVIS_BUILD_NUMBER})
 add_executable(print_ip_cli main.cpp iterate_tuple.h)
 
 set_target_properties(print_ip_cli PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
   COMPILE_OPTIONS -Wpedantic -Wall -Wextra
 )

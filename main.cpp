@@ -6,24 +6,38 @@
 #include <list>
 #include <utility>
 #include <tuple>
+#include <type_traits>
 #include "iterate_tuple.h"
 
 namespace  {
-    template<class T>
-      struct is_string {
-        using type = T ;
-        constexpr static bool value = false;
-   };
+    //check stl-container type
+    template <typename T, typename = void>
+    struct is_container : std::false_type {};
 
-   template<>
-      struct is_string<std::string> {
-        using type = std::string ;
-        constexpr  static bool value = true;
-   };
+    template <typename T>
+    struct is_container<T
+       , std::void_t<decltype(std::declval<T>().clear())
+          , decltype(std::declval<T>().size())>> : std::true_type {};
 
-  //functor for basic action for one lement from tuple
-  struct callback
-  {
+    //check homogeneity of types in tuple
+    template<typename Type>
+    constexpr bool parse() {
+        return true;
+    }
+
+    template<typename Type, typename FirstType, typename... Args>
+    constexpr bool parse() {
+        return std::is_same<Type, FirstType>::value && parse<Type, Args...>();
+    }
+
+    template<typename... Args>
+    void checkHomogeneity(std::tuple<Args...>& t) {
+        static_assert (parse<Args...>(), "types in tuple has various types");
+    }
+
+    //functor for basic action for one element from tuple
+    struct callback
+    {
       template<typename T>
       void operator()(int index, T&& t)
       {
@@ -31,7 +45,15 @@ namespace  {
               std::cout << ".";
           std::cout << t;
       }
-  };
+    };
+}
+
+//tuple case
+template <typename TT>
+auto print_ip(TT& input) -> decltype(std::get<0>(std::declval<TT>()), void())
+{
+    checkHomogeneity(input);
+    for_each(input, callback());
 }
 
 //base template
@@ -62,22 +84,22 @@ void print_ip<char>(char& input)
 
 //overloaded template
 template<typename TT>
-typename std::enable_if<!std::is_integral<typename std::remove_reference<TT>::type>::value, void>::type
+typename std::enable_if<is_container<typename std::remove_reference<TT>::type>::value, void>::type
 print_ip(TT& input)
-{
-    if(!is_string<TT>::value)
-        std::cout << *(input.begin());
-    for(auto & element: input) {
-        if(!is_string<TT>::value)
-            std::cout << ".";
+{    
+    std::cout << *(input.begin());
+    for(auto & element: input) {        
+        std::cout << ".";
         std::cout << element;
     }
     std::cout << std::endl;
 }
 
-template <typename ...Types>
-void print_ip(std::tuple<Types...>& input){
-    for_each(input, callback());
+//specialization
+template <>
+void print_ip<std::string>(std::string& input)
+{
+    std::cout << input << std::endl;
 }
 
 int main()
@@ -100,7 +122,7 @@ int main()
     print_ip(vector);
     print_ip(string);
 
-    std::tuple<int, int, int ,int> tuple{192, 167, 0, 1};
+    std::tuple<int, int, int, int> tuple{192, 167, 0, 1};
     print_ip(tuple);
 
     return 0;

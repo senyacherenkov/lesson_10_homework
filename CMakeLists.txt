@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.8)
 
 project(print_ip)
 #VERSION 0.0.$ENV{TRAVIS_BUILD_NUMBER})
@@ -6,7 +6,7 @@ project(print_ip)
 add_executable(print_ip_cli main.cpp iterate_tuple.h)
 
 set_target_properties(print_ip_cli PROPERTIES
-  CXX_STANDARD 14
+  CXX_STANDARD 17
   CXX_STANDARD_REQUIRED ON
   COMPILE_OPTIONS -Wpedantic -Wall -Wextra
 )

@@ -7,34 +7,10 @@
 #include <utility>
 #include <tuple>
 #include <type_traits>
+#include "user_compiletime_check.h"
 #include "iterate_tuple.h"
 
 namespace  {
-    //check stl-container type
-    template <typename T, typename = void>
-    struct is_container : std::false_type {};
-
-    template <typename T>
-    struct is_container<T
-       , std::void_t<decltype(std::declval<T>().clear())
-          , decltype(std::declval<T>().size())>> : std::true_type {};
-
-    //check homogeneity of types in tuple
-    template<typename Type>
-    constexpr bool parse() {
-        return true;
-    }
-
-    template<typename Type, typename FirstType, typename... Args>
-    constexpr bool parse() {
-        return std::is_same<Type, FirstType>::value && parse<Type, Args...>();
-    }
-
-    template<typename... Args>
-    void checkHomogeneity(std::tuple<Args...>& t) {
-        static_assert (parse<Args...>(), "types in tuple has various types");
-    }
-
     //functor for basic action for one element from tuple
     struct callback
     {
@@ -62,23 +38,17 @@ typename std::enable_if<std::is_integral<typename std::remove_reference<TT>::typ
 print_ip(TT& input)
 {
     auto p = (uint8_t*)&input;
-    std::cout << static_cast<int>(*(p + sizeof (TT) - 1));
+    int sizeOfType = sizeof (TT);
+    std::cout << static_cast<int>(*(p + sizeOfType - 1));
 
-    for(int i = static_cast<int>(sizeof (TT) - 2); i >= 0; i--) {
-        std::cout << ".";
-        std::cout << static_cast<int>(*(p + i));
+    if(sizeOfType > 1) {
+        for(int i = static_cast<int>(sizeOfType - 2); i >= 0; i--) {
+            std::cout << ".";
+            std::cout << static_cast<int>(*(p + i));
+        }
     }
 
     std::cout << std::endl;
-    return;
-}
-
-//specialization
-template <>
-void print_ip<char>(char& input)
-{
-    auto p = (uint8_t*)&input;
-    std::cout << static_cast<int>(*(p)) << std::endl;
     return;
 }
 
@@ -95,9 +65,9 @@ print_ip(TT& input)
     std::cout << std::endl;
 }
 
-//specialization
-template <>
-void print_ip<std::string>(std::string& input)
+template <typename TT>
+typename std::enable_if<std::is_same<typename std::remove_reference<TT>::type, std::string>::value, void>::type
+print_ip(TT& input)
 {
     std::cout << input << std::endl;
 }
